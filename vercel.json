@@ -1,6 +1,6 @@
 {
   "experimentalServices": {
-    "frontend": {
+    "frontend": { 
       "entrypoint": "frontend"
     },
     "backend": {
