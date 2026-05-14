@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "vercel-build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -16,3 +17,4 @@
     "vite": "^5.2.0"
   }
 }
+
