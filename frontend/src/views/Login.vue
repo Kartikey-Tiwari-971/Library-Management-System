@@ -28,9 +28,7 @@
         <button class="btn btn-primary btn-full" @click="doLogin" :disabled="loading">
           {{ loading ? 'Signing in…' : 'Sign In' }}
         </button>
-        <div class="hint-box">
-          <strong>Default librarian:</strong> <code>librarian / admin123</code>
-        </div>
+        
       </div>
 
       <!-- REGISTER FORM -->
