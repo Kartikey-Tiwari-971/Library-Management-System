@@ -1,101 +1,3 @@
-<template>
-  <div v-if="!auth.loaded" class="loading-screen">
-    <div class="loader-wrap"><span class="logo-icon">📚</span><p>Loading Biblios…</p></div>
-  </div>
-
-  <!-- Not logged in: just show the page (login) -->
-  <div v-else-if="!auth.user">
-    <router-view />
-  </div>
-
-  <!-- Logged in: full shell -->
-  <div v-else class="app-shell">
-    <aside class="sidebar">
-      <div class="sidebar-logo">
-        <span class="logo-icon">📚</span>
-        <div>
-          <div class="logo-name serif">Biblios</div>
-          <div class="logo-sub">Library System</div>
-        </div>
-      </div>
-
-      <!-- LIBRARIAN NAV -->
-      <nav class="sidebar-nav" v-if="auth.isLibrarian">
-        <router-link to="/" class="nav-item" :class="{ active: $route.path === '/' }">
-          <span class="nav-icon">🏛️</span> Dashboard
-        </router-link>
-        <router-link to="/books" class="nav-item" :class="{ active: $route.path === '/books' }">
-          <span class="nav-icon">📖</span> Books
-        </router-link>
-        <router-link to="/members" class="nav-item" :class="{ active: $route.path === '/members' }">
-          <span class="nav-icon">👥</span> Members
-        </router-link>
-        <router-link to="/borrows" class="nav-item" :class="{ active: $route.path === '/borrows' }">
-          <span class="nav-icon">🔖</span> Borrows
-        </router-link>
-        <router-link to="/students" class="nav-item" :class="{ active: $route.path === '/students' }">
-          <span class="nav-icon">🎓</span> Students
-          <span v-if="pendingCount > 0" class="nav-badge">{{ pendingCount }}</span>
-        </router-link>
-      </nav>
-
-      <!-- STUDENT NAV -->
-      <nav class="sidebar-nav" v-else>
-        <router-link to="/my" class="nav-item" :class="{ active: $route.path === '/my' }">
-          <span class="nav-icon">🏠</span> My Library
-        </router-link>
-        <router-link to="/books" class="nav-item" :class="{ active: $route.path === '/books' }">
-          <span class="nav-icon">📖</span> Browse Books
-        </router-link>
-      </nav>
-
-      <div class="sidebar-user">
-        <div class="user-avatar">{{ auth.user.username[0].toUpperCase() }}</div>
-        <div class="user-info">
-          <div class="user-name">{{ auth.user.username }}</div>
-          <div class="user-role">{{ auth.user.role }}</div>
-        </div>
-        <button class="logout-btn" @click="doLogout" title="Logout">⏏</button>
-      </div>
-
-      <div class="sidebar-footer">
-        <div class="sidebar-quote serif">"A reader lives a thousand lives."</div>
-        <div class="sidebar-quote-author">— George R.R. Martin</div>
-      </div>
-    </aside>
-
-    <main class="main-content">
-      <router-view />
-    </main>
-  </div>
-</template>
-
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { auth } from './store/auth.js'
-import { logout, getPendingStudents } from './store/api.js'
-
-const router = useRouter()
-const pendingCount = ref(0)
-
-const doLogout = async () => {
-  await logout()
-  auth.user = null
-  auth.loaded = false
-  router.push('/login')
-}
-
-onMounted(async () => {
-  if (auth.isLibrarian) {
-    try {
-      const r = await getPendingStudents()
-      pendingCount.value = r.data.length
-    } catch {}
-  }
-})
-</script>
-
 <style scoped>
 .loading-screen {
   height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -109,7 +11,7 @@ onMounted(async () => {
 
 .sidebar {
   width: var(--sidebar-w); background: var(--warm-brown); color: #f5ece0;
-  display: flex; flex-direction: column; padding: 28px 0; flex-shrink: 0;
+  display: flex; flex-direction: column; padding: 28px 0; flex-shrink: 0; z-index: 200;
 }
 .sidebar-logo {
   display: flex; align-items: center; gap: 12px;
@@ -122,8 +24,7 @@ onMounted(async () => {
 .sidebar-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 4px; }
 .nav-item {
   display: flex; align-items: center; gap: 11px; padding: 11px 14px;
-  border-radius: 10px; font-size: 14.5px; font-weight: 400; color: rgba(245,236,224,.75); transition: all .16s;
-  position: relative;
+  border-radius: 10px; font-size: 14.5px; color: rgba(245,236,224,.75); transition: all .16s; position: relative;
 }
 .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
 .nav-item.active { background: rgba(201,136,42,.25); color: var(--amber-light); font-weight: 500; }
@@ -160,4 +61,57 @@ onMounted(async () => {
 .sidebar-quote-author { font-size: 11px; color: rgba(245,236,224,.3); margin-top: 4px; }
 
 .main-content { flex: 1; overflow-y: auto; padding: 36px 40px; background: var(--parchment); }
+
+/* hidden on desktop */
+.mobile-topbar { display: none; }
+.sidebar-overlay { display: none; }
+.bottom-nav { display: none; }
+.hamburger { display: none; }
+
+@media (max-width: 768px) {
+  .app-shell { flex-direction: column; height: 100dvh; }
+
+  .mobile-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; background: var(--warm-brown); flex-shrink: 0; z-index: 300;
+  }
+  .mobile-logo { display: flex; align-items: center; gap: 10px; color: #f5ece0; }
+  .hamburger {
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.15); border: none; border-radius: 8px;
+    color: #f5ece0; font-size: 20px; width: 38px; height: 38px; cursor: pointer;
+  }
+
+  .sidebar {
+    position: fixed; top: 0; left: 0; height: 100%; width: 260px;
+    transform: translateX(-100%); transition: transform .25s ease; padding-top: 60px;
+  }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,.3); }
+
+  .sidebar-overlay {
+    display: block; position: fixed; inset: 0;
+    background: rgba(0,0,0,.4); z-index: 199;
+  }
+
+  .main-content { flex: 1; overflow-y: auto; padding: 20px 16px 80px; }
+
+  .bottom-nav {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--warm-brown); border-top: 1px solid rgba(255,255,255,.12);
+    z-index: 300; padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bnav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 3px; padding: 8px 4px;
+    color: rgba(245,236,224,.6); font-size: 10px; text-decoration: none;
+    transition: color .15s; position: relative;
+  }
+  .bnav-item span:first-child { font-size: 20px; }
+  .bnav-item.active { color: var(--amber-light); }
+  .bnav-badge {
+    position: absolute; top: 4px; right: calc(50% - 18px);
+    background: #e55; color: #fff; font-size: 9px;
+    font-weight: 700; padding: 1px 5px; border-radius: 99px;
+  }
+}
 </style>
